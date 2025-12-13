@@ -2,14 +2,14 @@ name: Scan Google Gemini IPv6
 
 on:
   schedule:
-    - cron: '0 2 * * *'
-  workflow_dispatch:
+    - cron: '0 2 * * *'  # 每天 UTC 02:00 运行
+  workflow_dispatch:      # 允许手动触发
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write     # 允许提交代码
 
     steps:
     - name: Checkout code
@@ -20,11 +20,16 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Setup WARP
-      uses: fawazahmed0/action-setup-warp@v2
+    # 修复：替换失效的 warp action，使用 fscarmen/warp-on-actions
+    - name: Set up WARP
+      uses: fscarmen/warp-on-actions@v1.4
       with:
-        mode: client
+        stack: dual       # 开启 IPv4/IPv6 双栈
         
+    - name: Check Network (Debug)
+      run: |
+        curl -6 -m 5 https://ifconfig.co || echo "IPv6 connectivity check failed, but script might still work via WARP."
+
     - name: Run Scanner
       run: python scan_matrix.py
 
@@ -33,5 +38,6 @@ jobs:
         git config --global user.name "GitHub Action"
         git config --global user.email "action@github.com"
         git add valid_ips.txt
-        git commit -m "Update valid IPv6 list" || exit 0
+        # 如果有变化才提交
+        git commit -m "Update valid IPv6 list [$(date -u +'%Y-%m-%d')]" || exit 0
         git push
