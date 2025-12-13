@@ -57,14 +57,8 @@ def generate_targets():
                     targets.append(ip)
     return targets
 
-def load_existing():
-    if os.path.exists(OUTPUT_FILE):
-        with open(OUTPUT_FILE, 'r') as f:
-            for line in f:
-                ip = line.strip()
-                if ip: valid_ips.add(ip)
-
 def save_results():
+    # 'w' mode ensures the file is overwritten (truncated) every time
     with open(OUTPUT_FILE, 'w') as f:
         sorted_ips = sorted(list(valid_ips), key=lambda x: (
             0 if x.startswith("2404") else 
@@ -74,8 +68,7 @@ def save_results():
             f.write(f"{ip}\n")
 
 def main():
-    load_existing()
-    print(f"[*] Loaded {len(valid_ips)} existing IPs.")
+    # Removed load_existing() to ensure we only keep currently valid IPs
     
     if not socket.has_ipv6:
         print("[!] Warning: System claims no IPv6, but we will try anyway (WARP mode).")
