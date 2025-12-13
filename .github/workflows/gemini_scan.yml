@@ -1,0 +1,37 @@
+name: Scan Google Gemini IPv6
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Setup WARP
+      uses: fawazahmed0/action-setup-warp@v2
+      with:
+        mode: client
+        
+    - name: Run Scanner
+      run: python scan_matrix.py
+
+    - name: Commit and Push results
+      run: |
+        git config --global user.name "GitHub Action"
+        git config --global user.email "action@github.com"
+        git add valid_ips.txt
+        git commit -m "Update valid IPv6 list" || exit 0
+        git push
